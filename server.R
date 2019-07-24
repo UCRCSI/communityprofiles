@@ -11,6 +11,47 @@ raw <- raw %>%
 #   arrange(desc(variable))
 # group_labels <- labels$group
 
+fulldata <- raw %>% 
+  filter(!estimate %in% c("kpov", "spov", "pov"))
+
+fulldata$estimate <- fct_recode(fulldata$estimate,
+                           "Population 2017" = "pop_2017",
+                           "Population 2016" = "pop_2016",
+                           "Population 2015" = "pop_2015",
+                           "Population 2014" = "pop_2014",
+                           "Population 2013" = "pop_2013",
+                           "Population 2012" = "pop_2012",
+                           "Population 2011" = "pop_2011",
+                           "Population 2010" = "pop_2010",
+                           "Pop Growth 2017-2016" = "growth_17",
+                           "Pop Growth 2016-2015" = "growth_16", 
+                           "Pop Growth 2015-2014" = "growth_15",
+                           "Pop Growth 2014-2013" = "growth_14", 
+                           "Pop Growth 2013-2012" = "growth_13",
+                           "Pop Growth 2012-2011" = "growth_12", 
+                           "Pop Growth 2011-2010" = "growth_11",
+                           "BA or Higher" = "edu4",
+                           "HS Grad" = "edu2",
+                           "Less HS" = "edu1",
+                           "Some College or AA" = "edu3",
+                           "Median HH Income" = "income",
+                           "Median Age" = "median_age",
+                           "Speak only English" = "eng",
+                           "Limited English Proficient" = "lep",
+                           "Speak Language other than English at home" = "other_lang",
+                           "No Health Insurance" = "no_ins",
+                           "With Private Insurance" = "pri_ins",
+                           "Owner" = "owner",
+                           "Renter" = "renter",
+                           "Citizen Age Voting Population" = "cvap",
+                           "Foreign Born" = "fb",
+                           "Native Born" = "native")
+## Reordering fulldata$estimate
+fulldata$estimate <- factor(fulldata$estimate, levels=c("Population 2017", "Population 2016", "Population 2015", "Population 2014", "Population 2013", "Population 2012", "Population 2011", "Population 2010", "Pop Growth 2017-2016", "Pop Growth 2016-2015", "Pop Growth 2015-2014", "Pop Growth 2014-2013", "Pop Growth 2013-2012", "Pop Growth 2012-2011", "Pop Growth 2011-2010", "Less HS", "HS Grad", "Some College or AA", "BA or Higher", "Median HH Income", "Median Age", "Speak only English", "Speak Language other than English at home", "Limited English Proficient", "Citizen Age Voting Population", "Native Born", "Foreign Born", "No Health Insurance", "With Private Insurance", "Owner", "Renter"))
+
+fulldata <- fulldata %>% 
+  spread(group, value)
+  
 dta_totpop <- raw %>% filter(estimate %in% c("pop_2010", "pop_2011", "pop_2012", "pop_2013", "pop_2014", 
                                     "pop_2015", "pop_2016", "pop_2017", "growth_17", "growth_16", 
                                     "growth_15", "growth_14", "growth_13", "growth_12", "growth_11"))
@@ -306,14 +347,16 @@ table_cvap <- reactive({
     return(dta)
 })
 
+# reactive raw data table -------------------------------------------------
 table_raw <- reactive({
   dta <-  raw %>%
-    # filter(group %in% input$group_choice) %>%
+    filter(group %in% input$group_choice) %>%
     select(group, estimate, value) %>%
     rename(topic = estimate,
-           estimate = value) %>% 
-    spread(group, estimate) %>% 
+           estimate = value) %>%
+    spread(group, estimate) %>%
     rename(Estimate = topic)
+
   return(dta)
 })
 
@@ -530,7 +573,7 @@ output$report <- downloadHandler(
 
 output$rawdata <- downloadHandler(
   filename = function() { "Community Profiles.xlsx"},
-  content = function(file) {write_xlsx(raw, path = file)}
+  content = function(file) {write_xlsx(fulldata, path = file)}
 )
 
 # output$extract <- downloadHandler(
