@@ -6,8 +6,10 @@ raw <- read_rds("dta/final_dta.rds")
 raw <- raw %>%
   gather(estimate, value,-group)
 
-labels <- read_rds("dta/group_lookup.rds")
-group_labels <- labels$group
+# labels <- read_rds("dta/group_lookup.rds")
+# labels <- labels %>% 
+#   arrange(desc(variable))
+# group_labels <- labels$group
 
 dta_totpop <- raw %>% filter(estimate %in% c("pop_2010", "pop_2011", "pop_2012", "pop_2013", "pop_2014", 
                                     "pop_2015", "pop_2016", "pop_2017", "growth_17", "growth_16", 
@@ -58,7 +60,7 @@ table_totpop <- reactive({
              estimate = value) %>% 
       mutate(estimatenew = case_when(
         topic %in% c("pop_2010", "pop_2011", "pop_2012", "pop_2013", "pop_2014", 
-                     "pop_2015", "pop_2016", "pop_2017") ~paste(scales::comma(estimate)),
+                     "pop_2015", "pop_2016", "pop_2017") ~paste(scales::comma(round(estimate))),
         topic %in% c("growth_17", "growth_16", "growth_15", "growth_14", 
                      "growth_13", "growth_12", "growth_11") ~paste(as.character(round(estimate*100, 1)), " %", sep = ""),
         group == "Mongolian alone" ~NA_character_)) %>% 
