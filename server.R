@@ -306,6 +306,16 @@ table_cvap <- reactive({
     return(dta)
 })
 
+table_raw <- reactive({
+  dta <-  raw %>%
+    # filter(group %in% input$group_choice) %>%
+    select(group, estimate, value) %>%
+    rename(topic = estimate,
+           estimate = value) %>% 
+    spread(group, estimate) %>% 
+    rename(Estimate = topic)
+  return(dta)
+})
 
 dta_download <- reactive({
     dta_all <- list(tot_pop = table_totpop(),
@@ -516,6 +526,11 @@ output$report <- downloadHandler(
                           envir = new.env(parent = globalenv())
         )
     }
+)
+
+output$rawdata <- downloadHandler(
+  filename = function() { "Community Profiles.xlsx"},
+  content = function(file) {write_xlsx(table_raw, path = file)}
 )
 
 # output$extract <- downloadHandler(

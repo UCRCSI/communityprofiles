@@ -34,7 +34,10 @@ shinyUI(
            actionButton("create_report", "Create Report"),
            conditionalPanel("input.create_report != 0",
                             br(),
-           downloadButton("report", "Download Report (PDF)"))
+           downloadButton("report", "Download Report (PDF)")),
+           conditionalPanel("input.create_report != 0",
+                            br(),
+                            downloadButton("rawdata", "Download Raw Data (xlsx)"))
            # ,
            # conditionalPanel("input.create_report != 0",
            #                  br(),
