@@ -530,7 +530,7 @@ output$report <- downloadHandler(
 
 output$rawdata <- downloadHandler(
   filename = function() { "Community Profiles.xlsx"},
-  content = function(file) {write_xlsx(table_raw, path = file)}
+  content = function(file) {write_xlsx(raw, path = file)}
 )
 
 # output$extract <- downloadHandler(
