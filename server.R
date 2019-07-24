@@ -51,7 +51,7 @@ fulldata$estimate <- factor(fulldata$estimate, levels=c("Population 2017", "Popu
 
 fulldata <- fulldata %>% 
   spread(group, value)
-  
+
 dta_totpop <- raw %>% filter(estimate %in% c("pop_2010", "pop_2011", "pop_2012", "pop_2013", "pop_2014", 
                                     "pop_2015", "pop_2016", "pop_2017", "growth_17", "growth_16", 
                                     "growth_15", "growth_14", "growth_13", "growth_12", "growth_11"))
@@ -573,7 +573,9 @@ output$report <- downloadHandler(
 
 output$rawdata <- downloadHandler(
   filename = function() { "Community Profiles.xlsx"},
-  content = function(file) {write_xlsx(fulldata, path = file)}
+  content = function(file) {
+    write_xlsx(fulldata, path = file)
+    }
 )
 
 # output$extract <- downloadHandler(
