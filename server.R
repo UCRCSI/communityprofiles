@@ -574,7 +574,13 @@ output$report <- downloadHandler(
 output$rawdata <- downloadHandler(
   filename = function() { "Community Profiles.xlsx"},
   content = function(file) {
-    write_xlsx(fulldata, path = file)
+    wb <- createWorkbook()
+    addWorksheet(wb, sheetName = "info", gridLines = T)
+    insertImage(wb, sheet = "info", "www/racial_data_logo_69dpi.png", startRow = 1, startCol = 1,width =6, height = 3)
+    addWorksheet(wb, sheetName = "raw data", gridLines = T)
+    writeDataTable(wb, x = fulldata, sheet = "raw data", startCol = 1, startRow = 1, colNames = T)
+    saveWorkbook(wb, file = file, overwrite = T)
+    # saveWorkbook(wb, file = "dta/test.xlsx", overwrite = T)
     }
 )
 
