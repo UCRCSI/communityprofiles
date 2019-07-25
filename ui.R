@@ -38,7 +38,7 @@ shinyUI(
            # downloadButton("rawdata", "Download Raw Data (xlsx)")
            conditionalPanel("input.create_report != 0",
                             br(),
-                            downloadButton("rawdata", "Download raw data (Excel)"))
+                            downloadButton("rawdata", "Download data (Excel)"))
            
         ),
 
