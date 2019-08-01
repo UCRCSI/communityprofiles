@@ -13,22 +13,24 @@ raw <- raw %>%
 
 list_pop <- c("pop_2010", "pop_2011", "pop_2012", "pop_2013", "pop_2014", 
          "pop_2015", "pop_2016", "pop_2017")
-list_growth <- c("growth_17", "growth_16", 
+list_growth <- c("growth", "growth_17", "growth_16", 
             "growth_15", "growth_14", "growth_13", "growth_12", "growth_11")
-
 list_edu <- c("edu1", "edu2", "edu3", "edu4")
 list_lep <- c("eng", "other_lang", "lep")
 list_ins <- c("no_ins", "pri_ins")
 list_home <- c("owner", "renter")
-list_cvap <- c("cvap", "native", "fb")
-dta_totpop <- raw %>% filter(estimate %in% list_pop | estimate %in% list_growth)
+list_nativity <- c("native", "fb")
+list_cvap <- c("cit_18", "non_cit", "cvap")
 
+
+dta_totpop <- raw %>% filter(estimate %in% list_pop | estimate %in% list_growth)
 dta_income <- raw %>% filter(estimate == "income")
 dta_age <- raw %>% filter(estimate == "median_age")
 dta_edu <- raw %>% filter(estimate %in% list_edu)
 dta_lep <- raw %>% filter(estimate %in% list_lep)
 dta_ins <- raw %>% filter(estimate %in% list_ins)
 dta_home <- raw %>% filter(estimate %in% list_home)
+dta_nativity <- raw %>% filter(estimate %in% list_nativity)
 dta_cvap <- raw %>% filter(estimate %in% list_cvap)
 
 # pop_compare <- read_rds("dta/pop_racial.rds")
@@ -60,6 +62,9 @@ profile_name <- reactive({
     names(group_labels)[group_labels == input$group_choice]
 })
 
+
+# excel export ------------------------------------------------------------
+
 selected_data <- reactive({
   fulldata <- raw %>% 
     filter(!estimate %in% c("kpov", "spov", "pov")) %>% 
@@ -72,6 +77,7 @@ selected_data <- reactive({
       estimate %in% list_lep ~paste(as.character(round(value*100, 1)), " %", sep = ""),
       estimate %in% list_ins ~paste(as.character(round(value*100, 1)), " %", sep = ""),
       estimate %in% list_home ~paste(as.character(round(value*100, 1)), " %", sep = ""),
+      estimate %in% list_nativity ~paste(as.character(round(value*100, 1)), " %", sep = ""),
       estimate %in% list_cvap ~paste(as.character(round(value*100, 1)), " %", sep = "")))
   
   fulldata$estimate <- fct_recode(fulldata$estimate,
@@ -83,6 +89,7 @@ selected_data <- reactive({
                                   "Population 2012" = "pop_2012",
                                   "Population 2011" = "pop_2011",
                                   "Population 2010" = "pop_2010",
+                                  "Pop Growth 2017-2010" = "growth",
                                   "Pop Growth 2017-2016" = "growth_17",
                                   "Pop Growth 2016-2015" = "growth_16", 
                                   "Pop Growth 2015-2014" = "growth_15",
@@ -107,7 +114,7 @@ selected_data <- reactive({
                                   "Foreign Born" = "fb",
                                   "Native Born" = "native")
   ## Reordering fulldata$estimate
-  fulldata$estimate <- factor(fulldata$estimate, levels=c("Population 2017", "Population 2016", "Population 2015", "Population 2014", "Population 2013", "Population 2012", "Population 2011", "Population 2010", "Pop Growth 2017-2016", "Pop Growth 2016-2015", "Pop Growth 2015-2014", "Pop Growth 2014-2013", "Pop Growth 2013-2012", "Pop Growth 2012-2011", "Pop Growth 2011-2010", "Less HS", "HS Grad", "Some College or AA", "BA or Higher", "Median HH Income", "Median Age", "Speak only English", "Speak Language other than English at home", "Limited English Proficient", "Citizen Age Voting Population", "Native Born", "Foreign Born", "No Health Insurance", "With Private Insurance", "Owner", "Renter"))
+  fulldata$estimate <- factor(fulldata$estimate, levels=c("Population 2017", "Population 2016", "Population 2015", "Population 2014", "Population 2013", "Population 2012", "Population 2011", "Population 2010", "Pop Growth 2017-2010", "Pop Growth 2017-2016", "Pop Growth 2016-2015", "Pop Growth 2015-2014", "Pop Growth 2014-2013", "Pop Growth 2013-2012", "Pop Growth 2012-2011", "Pop Growth 2011-2010", "Less HS", "HS Grad", "Some College or AA", "BA or Higher", "Median HH Income", "Median Age", "Speak only English", "Speak Language other than English at home", "Limited English Proficient", "Citizen Age Voting Population", "Native Born", "Foreign Born", "No Health Insurance", "With Private Insurance", "Owner", "Renter"))
   
   fulldata <- fulldata %>% 
     filter(group %in% input$group_choice) %>% 
@@ -117,6 +124,9 @@ selected_data <- reactive({
 })
 
 
+# pop ---------------------------------------------------------------------
+
+
 table_totpop <- reactive({
     dta <-  dta_totpop %>%
       filter(group %in% input$group_choice) %>%
@@ -124,20 +134,17 @@ table_totpop <- reactive({
       rename(topic = estimate,
              estimate = value) %>% 
       mutate(estimatenew = case_when(
-        topic %in% c("pop_2010", "pop_2011", "pop_2012", "pop_2013", "pop_2014", 
-                     "pop_2015", "pop_2016", "pop_2017") ~paste(scales::comma(round(estimate))),
-        topic %in% c("growth_17", "growth_16", "growth_15", "growth_14", 
-                     "growth_13", "growth_12", "growth_11") ~paste(as.character(round(estimate*100, 1)), " %", sep = ""),
+        topic %in% list_pop ~paste(scales::comma(round(estimate))),
+        topic %in% list_growth ~paste(as.character(round(estimate*100, 1)), " %", sep = ""),
         group == "Mongolian alone" ~NA_character_)) %>% 
       select(-estimate) %>% 
       spread(group, estimatenew) %>% 
       rename(Estimate = topic) %>% 
-      filter(Estimate %in% c("pop_2010", "pop_2011", "pop_2012", "pop_2013", "pop_2014", 
-                             "pop_2015", "pop_2016", "pop_2017"))
+      filter(Estimate %in% list_pop)
     
     dta$Estimate <- fct_recode(dta$Estimate,
                                 "Population 2017" = "pop_2017",
-                               "Population 2016" = "pop_2016",
+                                "Population 2016" = "pop_2016",
                                 "Population 2015" = "pop_2015",
                                 "Population 2014" = "pop_2014",
                                 "Population 2013" = "pop_2013",
@@ -157,6 +164,9 @@ table_totpop <- reactive({
     dta <- dta %>% arrange(Estimate)
     return(dta)
 })
+
+# growth ------------------------------------------------------------------
+
 table_growth <- reactive({
   dta <-  dta_totpop %>%
     filter(group %in% input$group_choice) %>%
@@ -164,18 +174,16 @@ table_growth <- reactive({
     rename(topic = estimate,
            estimate = value) %>% 
     mutate(estimatenew = case_when(
-      topic %in% c("pop_2010", "pop_2011", "pop_2012", "pop_2013", "pop_2014", 
-                   "pop_2015", "pop_2016", "pop_2017") ~paste(scales::comma(estimate)),
-      topic %in% c("growth_17", "growth_16", "growth_15", "growth_14", 
-                   "growth_13", "growth_12", "growth_11") ~paste(as.character(round(estimate*100, 1)), " %", sep = ""),
+      topic %in% list_pop ~paste(scales::comma(estimate)),
+      topic %in% list_growth ~paste(as.character(round(estimate*100, 1)), " %", sep = ""),
       group == "Mongolian alone" ~NA_character_)) %>% 
     select(-estimate) %>% 
     spread(group, estimatenew) %>% 
     rename(Estimate = topic) %>% 
-    filter(Estimate %in% c("growth_17", "growth_16", "growth_15", "growth_14", 
-                           "growth_13", "growth_12", "growth_11"))
+    filter(Estimate %in% list_growth)
   
   dta$Estimate <- fct_recode(dta$Estimate,
+                             "Pop Growth 2017-2010" = "growth",
                              "Pop Growth 2017-2016" = "growth_17",
                              "Pop Growth 2016-2015" = "growth_16", 
                              "Pop Growth 2015-2014" = "growth_15",
@@ -184,7 +192,8 @@ table_growth <- reactive({
                              "Pop Growth 2012-2011" = "growth_12", 
                              "Pop Growth 2011-2010" = "growth_11")
   
-  dta$Estimate <- factor(dta$Estimate, levels=c("Pop Growth 2017-2016",
+  dta$Estimate <- factor(dta$Estimate, levels=c("Pop Growth 2017-2010",
+                                                "Pop Growth 2017-2016",
                                                 "Pop Growth 2016-2015", 
                                                 "Pop Growth 2015-2014",
                                                 "Pop Growth 2014-2013", 
@@ -195,6 +204,9 @@ table_growth <- reactive({
   dta <- dta %>% arrange(Estimate)
   return(dta)
 })
+
+# edu ---------------------------------------------------------------------
+
 table_edu <- reactive({
    
     dta_edu %>%
@@ -221,6 +233,8 @@ table_edu <- reactive({
     return(dta)
 })
 
+# income ------------------------------------------------------------------
+
 table_income <- reactive({
     dta <-  dta_income %>%
         filter(group %in% input$group_choice) %>%
@@ -237,6 +251,8 @@ table_income <- reactive({
     return(dta)
 })
 
+
+# age ---------------------------------------------------------------------
 
 table_age <- reactive({
     dta <-  dta_age %>%
@@ -258,6 +274,8 @@ table_age <- reactive({
 
     return(dta)
 })
+
+# lep ---------------------------------------------------------------------
 
 table_lep <- reactive({
     dta_lep %>%
@@ -283,6 +301,9 @@ table_lep <- reactive({
     return(dta)
 })
 
+
+# insurance ---------------------------------------------------------------
+
 table_ins <- reactive({
     dta_ins %>%
         filter(group %in% input$group_choice) %>%
@@ -306,6 +327,8 @@ table_ins <- reactive({
 })
 
 
+# home ownership ----------------------------------------------------------
+
 table_home <- reactive({
     dta_home %>%
         filter(group %in% input$group_choice) %>%
@@ -328,6 +351,33 @@ table_home <- reactive({
 })
 
 
+# nativity ----------------------------------------------------------------
+table_nativity <- reactive({
+  dta_nativity %>%
+    filter(group %in% input$group_choice) %>%
+    select(group, estimate, value) %>%
+    rename(topic = estimate,
+           estimate = value) %>%
+    mutate(estimate = case_when(is.na(estimate) ~ "-",
+                                estimate == 0 ~ "-",
+                                TRUE ~ as.character(round(estimate*100,1)))) %>%
+    mutate(estimatenew = paste(paste(estimate)," % ",sep="")) %>%
+    select(-estimate) %>%
+    spread(group, estimatenew) %>%
+    rename(Estimate = topic) -> dta
+  
+  dta$Estimate <- fct_recode(dta$Estimate,
+                             "Foreign Born" = "fb",
+                             "Native Born" = "native")
+  ## Reordering dta$label.x
+  dta$Estimate <- factor(dta$Estimate, levels=c(  "Native Born", "Foreign Born"))
+  dta <- dta %>% arrange(Estimate)
+  return(dta)
+})
+
+
+# cvap --------------------------------------------------------------------
+
 table_cvap <- reactive({
     dta_cvap %>%
         filter(group %in% input$group_choice) %>%
@@ -343,11 +393,13 @@ table_cvap <- reactive({
         rename(Estimate = topic) -> dta
 
     dta$Estimate <- fct_recode(dta$Estimate,
-                               "Citizen Age Voting Population" = "cvap",
-                               "Foreign Born" = "fb",
-                               "Native Born" = "native")
+                               "Citizen Voting Age Population" = "cvap",
+                               "Citizen (under 18 years old)" = "cit_18",
+                               "Non-Citizen Population" = "non_cit")
     ## Reordering dta$label.x
-    dta$Estimate <- factor(dta$Estimate, levels=c(  "Native Born" ,   "Foreign Born",  "Citizen Age Voting Population"))
+    dta$Estimate <- factor(dta$Estimate, levels=c("Citizen Voting Age Population",
+                                                  "Citizen (under 18 years old)",
+                                                  "Non-Citizen Population"))
     dta <- dta %>% arrange(Estimate)
     return(dta)
 })
@@ -361,6 +413,7 @@ dta_download <- reactive({
                     lep = table_lep(),
                     ins= table_ins(),
                     home = table_home(),
+                    nativity = table_nativity(),
                     cvap = table_cvap())
     return(dta_all)
 })
@@ -458,6 +511,17 @@ output$home <- DT::renderDataTable({
 
 })
 
+output$nativity <- DT::renderDataTable({
+  DT::datatable(table_nativity(),
+                rownames = FALSE,
+                escape=FALSE,
+                extensions = 'Buttons',
+                style = 'bootstrap', class = 'table-bordered',
+                options = list(dom = 't', pageLength = 25, buttons = c('copy', 'csv', 'excel', 'pdf', 'print'))) %>%
+    formatStyle(c(2,3,4,5,6), `text-align` = 'center')
+  
+})
+
 output$cvap <- DT::renderDataTable({
     DT::datatable(table_cvap(),
                   rownames = FALSE,
@@ -526,6 +590,13 @@ output$home_notes <- renderText({
         return()
     }
     paste("Universe: Occupied housing units")
+})
+
+output$nativity_notes <- renderText({
+  if(input$group_choice == ""){
+    return()
+  }
+  paste("Universe: Total population")
 })
 
 output$cvap_notes <- renderText({

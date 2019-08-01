@@ -11,7 +11,7 @@ options(shiny.sanitize.errors = FALSE)
 
 labels <- read_rds("dta/group_lookup.rds")
 labels <- labels %>% 
-  arrange(desc(variable))
+  arrange(code)
 group_labels <- labels$group
 # geo_labels <- read_rds("dta/geo_labels.rds")
 

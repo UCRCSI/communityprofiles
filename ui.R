@@ -135,10 +135,19 @@ shinyUI(
                 )
             ),
             fluidRow(
+              column(
+                12, align = "left",
+                conditionalPanel("input.create_report != 0",
+                                 h2("Nativity", align = "center"),
+                                 h6(htmlOutput("nativity_notes"),align = "center"),
+                                 dataTableOutput("nativity"))
+              )
+            ),
+            fluidRow(
                 column(
                     12, align = "left",
                     conditionalPanel("input.create_report != 0",
-                                     h2("CVAP", align = "center"),
+                                     h2("Citizen Voting Age Population", align = "center"),
                                      h6(htmlOutput("cvap_notes"),align = "center"),
                                      dataTableOutput("cvap"))
                 )
