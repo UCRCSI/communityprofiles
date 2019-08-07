@@ -67,18 +67,7 @@ profile_name <- reactive({
 
 selected_data <- reactive({
   fulldata <- raw %>% 
-    filter(!estimate %in% c("kpov", "spov", "pov")) %>% 
-    mutate(value = case_when(
-      estimate %in% list_pop ~scales::comma(round(value)),
-      estimate %in% list_growth ~paste(as.character(round(value*100, 1)), " %", sep = ""),
-      estimate %in% list_edu ~paste(as.character(round(value*100, 1)), " %", sep = ""),
-      estimate == "income" ~as.character(scales::dollar(value)),
-      estimate == "median_age" ~as.character(round(value)),
-      estimate %in% list_lep ~paste(as.character(round(value*100, 1)), " %", sep = ""),
-      estimate %in% list_ins ~paste(as.character(round(value*100, 1)), " %", sep = ""),
-      estimate %in% list_home ~paste(as.character(round(value*100, 1)), " %", sep = ""),
-      estimate %in% list_nativity ~paste(as.character(round(value*100, 1)), " %", sep = ""),
-      estimate %in% list_cvap ~paste(as.character(round(value*100, 1)), " %", sep = "")))
+    filter(!estimate %in% c("kpov", "spov", "pov")) 
   
   fulldata$estimate <- fct_recode(fulldata$estimate,
                                   "Population 2017" = "pop_2017",
@@ -110,15 +99,38 @@ selected_data <- reactive({
                                   "With Private Insurance" = "pri_ins",
                                   "Owner" = "owner",
                                   "Renter" = "renter",
-                                  "Citizen Age Voting Population" = "cvap",
                                   "Foreign Born" = "fb",
-                                  "Native Born" = "native")
+                                  "Native Born" = "native",
+                                  "Citizen Age Voting Population" = "cvap",
+                                  "Citizen under 18" = "cit_18",
+                                  "Non-Citizen Population" = "non_cit")
   ## Reordering fulldata$estimate
-  fulldata$estimate <- factor(fulldata$estimate, levels=c("Population 2017", "Population 2016", "Population 2015", "Population 2014", "Population 2013", "Population 2012", "Population 2011", "Population 2010", "Pop Growth 2017-2010", "Pop Growth 2017-2016", "Pop Growth 2016-2015", "Pop Growth 2015-2014", "Pop Growth 2014-2013", "Pop Growth 2013-2012", "Pop Growth 2012-2011", "Pop Growth 2011-2010", "Less HS", "HS Grad", "Some College or AA", "BA or Higher", "Median HH Income", "Median Age", "Speak only English", "Speak Language other than English at home", "Limited English Proficient", "Citizen Age Voting Population", "Native Born", "Foreign Born", "No Health Insurance", "With Private Insurance", "Owner", "Renter"))
+  fulldata$estimate <- factor(fulldata$estimate, levels=c("Median HH Income", "Median Age", 
+                                                          "Population 2017", "Population 2016", 
+                                                          "Population 2015", "Population 2014", 
+                                                          "Population 2013", "Population 2012", 
+                                                          "Population 2011", "Population 2010", 
+                                                          "Pop Growth 2017-2010", "Pop Growth 2017-2016", 
+                                                          "Pop Growth 2016-2015", "Pop Growth 2015-2014", 
+                                                          "Pop Growth 2014-2013", "Pop Growth 2013-2012", 
+                                                          "Pop Growth 2012-2011", "Pop Growth 2011-2010", 
+                                                          "Less HS", "HS Grad", "Some College or AA", 
+                                                          "BA or Higher",  
+                                                          "Speak only English", 
+                                                          "Speak Language other than English at home", 
+                                                          "Limited English Proficient", 
+                                                          "Native Born", "Foreign Born", 
+                                                          "Citizen Age Voting Population",
+                                                          "Citizen under 18",
+                                                          "Non-Citizen Population",
+                                                          "No Health Insurance", 
+                                                          "With Private Insurance", 
+                                                          "Owner", "Renter"))
   
-  fulldata <- fulldata %>% 
-    filter(group %in% input$group_choice) %>% 
-    spread(group, value) -> dta
+  dta <- fulldata %>% 
+    filter(group %in% input$group_choice) %>%
+    spread(group, value) %>% 
+    rename(Estimate = estimate)
 
   return(dta)
 })
@@ -241,7 +253,7 @@ table_income <- reactive({
         select(group,estimate, value) %>%
       rename(topic = estimate,
              estimate = value) %>% 
-        mutate(estimatenew = as.character(scales::dollar(estimate))) %>%
+        mutate(estimatenew = as.character(scales::dollar(round(estimate)))) %>%
         select(-estimate) %>%
         mutate(topic = "Median HH Income") %>%
         # mutate(estimatenew = paste(estimatenew, "<br>+/-")) %>%
@@ -539,14 +551,14 @@ output$totpop_notes <- renderText({
   if(input$group_choice == ""){
     return()
   }
-  paste("Universe: Total Population")
+  paste("Universe: Total Population<br>Source: 2017-2010 ACS table B02015, B02016, B03001, B03002 and B02001")
 })
 
 output$growth_notes <- renderText({
   if(input$group_choice == ""){
     return()
   }
-  paste("Universe: Total Population")
+  paste("Universe: Total Population<br>Source: 2017-2010 5-year ACS table B02015, B02016, B03001, B03002 and B02001")
 })
 
 
@@ -554,56 +566,56 @@ output$edu_notes <- renderText({
     if(input$group_choice == ""){
         return()
     }
-    paste("Universe: Age 25+")
+    paste("Universe: Age 25+<br>Source: 2017 5-year ACS table B15002, C15002B/C/D/E/H/I (racial groups) & PUMS data (ethnic groups)")
 })
 
 output$income_notes <- renderText({
     if(input$group_choice == ""){
         return()
     }
-    paste("Universe: Households")
+    paste("Universe: Households<br>Source: 2017 5-year ACS table B19013, B19013B/C/D/E/H/I (racial groups) & PUMS data (ethnic groups)")
 })
 
 output$age_notes <- renderText({
     if(input$group_choice == ""){
         return()
     }
-    paste("Universe: Total Population")
+    paste("Universe: Total Population<br>Source: 2017 5-year ACS table B01002, B01002B/C/D/E/H/I (racial groups) & PUMS data (ethnic groups)")
 })
 
 output$lep_notes <- renderText({
     if(input$group_choice == ""){
         return()
     }
-    paste("Universe: 5 years +")
+    paste("Universe: 5 years +<br>Source: 2017 5-year ACS table B16005, B16005B/C/D/E/H/I (racial groups) & PUMS data (ethnic groups)")
 })
 
 output$ins_notes <- renderText({
     if(input$group_choice == ""){
         return()
     }
-    paste("Universe: Civilian noninstitutionalized population")
+    paste("Universe: Civilian noninstitutionalized population<br>Source: 2017 5-year ACS table B27001, C27001B/C/D/E/H/I (racial groups) & PUMS data (ethnic groups)")
 })
 
 output$home_notes <- renderText({
     if(input$group_choice == ""){
         return()
     }
-    paste("Universe: Occupied housing units")
+    paste("Universe: Occupied housing units<br>Source: 2017 5-year ACS table B25003, B25003B/C/D/E/H/I (racial groups) & PUMS data (ethnic groups)")
 })
 
 output$nativity_notes <- renderText({
   if(input$group_choice == ""){
     return()
   }
-  paste("Universe: Total population")
+  paste("Universe: Total population<br>Source: 2017 5-year ACS table B05003, B05003B/C/D/E/H/I (racial groups) & PUMS data (ethnic groups)")
 })
 
 output$cvap_notes <- renderText({
     if(input$group_choice == ""){
         return()
     }
-    paste("Universe: Total population")
+    paste("Universe: Total population<br>Source: 2017 5-year ACS Citizen Voting Age Population Special Tabulation (racial data) & PUMS data (ethnic groups)")
 })
 
 
@@ -640,9 +652,35 @@ output$rawdata <- downloadHandler(
     wb <- createWorkbook()
     addWorksheet(wb, sheetName = "data", gridLines = T)
     insertImage(wb, sheet = "data", "www/racial_data_logo_dark.png", startRow = 1, startCol = 1,width =3, height = 1.5)
-    writeDataTable(wb, x = selected_data(), sheet = "data", startCol = 1, startRow = 8, colNames = T)
-    saveWorkbook(wb, file = file, overwrite = T)
+    #local test
+    # writeDataTable(wb, x = dta, sheet = "data", startCol = 1, startRow = 8, colNames = T)
+    # setColWidths(wb, sheet = "data", cols = 1:6, widths = "35")
+    # excel_style()#check golobal.R for detailed styling function
     # saveWorkbook(wb, file = "dta/test.xlsx", overwrite = T)
+    #server script
+    writeDataTable(wb, x = selected_data(), sheet = "data", startCol = 1, startRow = 8, 
+                   bandedRows=F, firstColumn=T, colNames = T)
+    setColWidths(wb, sheet = "data", cols = 1:6, widths = "35")
+    addStyle(wb = wb, sheet = "data", style = createStyle(numFmt = "$ #,##0"), rows = 9, cols = 2)
+    addStyle(wb = wb, sheet = "data", style = createStyle(numFmt = "$ #,##0"), rows = 9, cols = 3)
+    addStyle(wb = wb, sheet = "data", style = createStyle(numFmt = "$ #,##0"), rows = 9, cols = 4)
+    addStyle(wb = wb, sheet = "data", style = createStyle(numFmt = "$ #,##0"), rows = 9, cols = 5)
+    addStyle(wb = wb, sheet = "data", style = createStyle(numFmt = "$ #,##0"), rows = 9, cols = 6)
+    
+    addStyle(wb = wb, sheet = "data", style = createStyle(numFmt = "#,##0"), rows = 10:18, cols = 2)
+    addStyle(wb = wb, sheet = "data", style = createStyle(numFmt = "#,##0"), rows = 10:18, cols = 3)
+    addStyle(wb = wb, sheet = "data", style = createStyle(numFmt = "#,##0"), rows = 10:18, cols = 4)
+    addStyle(wb = wb, sheet = "data", style = createStyle(numFmt = "#,##0"), rows = 10:18, cols = 5)
+    addStyle(wb = wb, sheet = "data", style = createStyle(numFmt = "#,##0"), rows = 10:18, cols = 6)
+    
+    addStyle(wb = wb, sheet = "data", style = createStyle(numFmt = "0.0 %"), rows = 19:42, cols = 2)
+    addStyle(wb = wb, sheet = "data", style = createStyle(numFmt = "0.0 %"), rows = 19:42, cols = 3)
+    addStyle(wb = wb, sheet = "data", style = createStyle(numFmt = "0.0 %"), rows = 19:42, cols = 4)
+    addStyle(wb = wb, sheet = "data", style = createStyle(numFmt = "0.0 %"), rows = 19:42, cols = 5)
+    addStyle(wb = wb, sheet = "data", style = createStyle(numFmt = "0.0 %"), rows = 19:42, cols = 6)
+    
+    saveWorkbook(wb, file = file, overwrite = T)
+
     }
 )
 
